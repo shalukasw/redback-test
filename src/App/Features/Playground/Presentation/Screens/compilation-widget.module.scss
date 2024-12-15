@@ -1,0 +1,74 @@
+.progress-widget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.progress-widget__section {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  &:last-child {
+    .step-divider {
+      display: none;
+    }
+  }
+}
+
+.progress-spinner {
+  color: #47c7fc !important;
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+.step-divider {
+  height: 100%;
+  border-left: 2px dotted #171715;
+  margin-left: 0.5rem !important;
+}
+
+.progress-widget__section i {
+  color: var(--bs-primary);
+}
+
+.common-failure-msgblock {
+  display: flex;
+  flex-direction: row;
+}
+
+.common-failure-msgblock .icon {
+  margin-left: -.2rem;
+  width: 2rem !important;
+  margin-top: 5px !important;
+}
+
+.common-failure-msgblock .error-text-container{
+  margin-top: 3px !important;
+}
+
+.common-failure-msg {
+  font-size: 0.8rem;
+}
+.common-failure-msg i {
+  color: #47c7fc;
+}
+
+
+
+// Image styles
+.flash_container {
+  width: 423px;
+  height: 394px;
+  border: 2px solid #d9d9d9;
+  border-radius: 16px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

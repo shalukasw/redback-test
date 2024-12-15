@@ -1,0 +1,244 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Bugbox FE Template
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Domain
+        Parameters:
+          - SubDomain
+          - DomainName
+Mappings:
+  Solution:
+    Constants:
+      Version: v0.1
+Rules:
+  OnlyUsEast1:
+    Assertions:
+      - Assert:
+          Fn::Equals:
+            - Ref: AWS::Region
+            - us-east-1
+        AssertDescription: 'Only to be used in us-east-1 as CloundFront requires ACM certs to be in es-east-1'
+Conditions:
+  CreateApexConfig:
+    Fn::Equals:
+      - Ref: CreateApex
+      - 'yes'
+
+Parameters:
+  FEAppBucketName: { Type: String, Default: 'bbox-playground-app-xx' }
+  SubDomain:
+    Description: The Website subdomain
+    Type: String
+    Default: code
+    AllowedPattern: ^[^.]*$
+  DomainName:
+    Description: The website domain
+    Default: bugbox.au
+    Type: String
+  HostedZoneId:
+    Description: HostedZoneId for the domain e.g. Z23ABC4XYZL05B
+    Type: String
+  CreateApex:
+    Description: Create an Apex Alias in CloudFront distribution - yes/no
+    Type: String
+    Default: 'no'
+    AllowedValues:
+      - 'yes'
+      - 'no'
+
+Resources:
+  AccessLogBucket:
+    Type: 'AWS::S3::Bucket'
+
+  FEHostBucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref FEAppBucketName
+      # AccessControl: PublicRead
+      # WebsiteConfiguration:
+      # IndexDocument: 'index.html'
+      # ErrorDocument: 'error.html'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref AccessLogBucket
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: FEHostBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - s3:GetObject
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref FEHostBucket
+                - /*
+            Principal:
+              CanonicalUser:
+                Fn::GetAtt:
+                  - CloudFrontOriginAccessIdentity
+                  - S3CanonicalUserId
+  LogBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: AccessLogBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - s3:PutObject
+            Effect: Allow
+            Principal:
+              Service: 'logging.s3.amazonaws.com'
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref AccessLogBucket
+                - /*
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        # Aliases:
+        #  - Fn::Sub: '${SubDomain}.${DomainName}'
+        #  - Fn::If:
+        #      - CreateApexConfig
+        #      - Ref: DomainName
+        #      - Ref: AWS::NoValue
+        DefaultCacheBehavior:
+          Compress: true
+          DefaultTTL: 86400
+          ForwardedValues:
+            QueryString: true
+          MaxTTL: 31536000
+          TargetOriginId:
+            Fn::Sub: S3-${AWS::StackName}-root
+          ViewerProtocolPolicy: redirect-to-https
+          ResponseHeadersPolicyId:
+            Ref: ResponseHeadersPolicy
+        CustomErrorResponses:
+          - ErrorCachingMinTTL: 60
+            ErrorCode: 404
+            ResponseCode: 404
+            ResponsePagePath: /404.html
+          - ErrorCachingMinTTL: 60
+            ErrorCode: 403
+            ResponseCode: 403
+            ResponsePagePath: /403.html
+        Enabled: true
+        HttpVersion: http2
+        DefaultRootObject: index.html
+        IPV6Enabled: true
+        #Logging:
+        #  Bucket:
+        #    Fn::GetAtt:
+        #      - AccessLogBucket
+        #      - DomainName
+        #  IncludeCookies: false
+        #  Prefix: cdn/
+        Origins:
+          - DomainName:
+              Fn::GetAtt:
+                - FEHostBucket
+                - DomainName
+            Id:
+              Fn::Sub: S3-${AWS::StackName}-root
+            S3OriginConfig:
+              OriginAccessIdentity:
+                Fn::Join:
+                  - ''
+                  - - origin-access-identity/cloudfront/
+                    - Ref: CloudFrontOriginAccessIdentity
+        PriceClass: PriceClass_All
+        #ViewerCertificate:
+        #  AcmCertificateArn:
+        #    Ref: Certificate
+        #  MinimumProtocolVersion: TLSv1.1_2016
+        #  SslSupportMethod: sni-only
+      Tags:
+        - Key: Solution
+          Value: ACFS3
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment:
+          Fn::Sub: CloudFront OAI for ${SubDomain}.${DomainName}
+  ResponseHeadersPolicy:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name:
+          Fn::Sub: ${AWS::StackName}-static-site-security-headers
+        SecurityHeadersConfig:
+          StrictTransportSecurity:
+            AccessControlMaxAgeSec: 63072000
+            IncludeSubdomains: true
+            Override: true
+            Preload: true
+          ContentSecurityPolicy:
+            ContentSecurityPolicy:
+              default-src 'none'; img-src 'self'; script-src
+              'self'; style-src 'self'; object-src 'none'
+            Override: true
+          ContentTypeOptions:
+            Override: true
+          FrameOptions:
+            FrameOption: DENY
+            Override: true
+          ReferrerPolicy:
+            ReferrerPolicy: same-origin
+            Override: true
+          XSSProtection:
+            ModeBlock: true
+            Override: true
+            Protection: true
+
+  #Certificate:
+  #  Type: AWS::CertificateManager::Certificate
+  #  Properties:
+  #    DomainName:
+  #      Fn::Sub: '${SubDomain}.${DomainName}'
+  #    ValidationMethod: DNS
+  FERum:
+    Type: AWS::RUM::AppMonitor
+    Properties:
+      AppMonitorConfiguration:
+        AllowCookies: true
+        EnableXRay: true
+        SessionSampleRate: 1
+        Telemetries:
+          - errors
+          - performance
+          - http
+      CwLogEnabled: false
+      Domain:
+        Fn::Sub: '${SubDomain}.${DomainName}'
+      Name: playground-fe
+      # Tags: [ Tag, ...
+Outputs:
+  BugBoxURL:
+    Value: !GetAtt
+      - FEHostBucket
+      - WebsiteURL
+    Description: URL for s3 hosted app
+  BugBoxSecureURL:
+    Value: !Join
+      - ''
+      - - 'https://'
+        - !GetAtt
+          - FEHostBucket
+          - DomainName
+    Description: Name of S3 bucket hosting app
