@@ -9,13 +9,13 @@ interface Props extends ButtonProps {
 }
 
 const CircleButton: FC<Props> = forwardRef<HTMLButtonElement, Props>(
-  ({ label, className, children, ...props }, ref) => {
+  ({ label, className = '', children, ...props }, ref) => {
     return (
       <Button
         variant="outline-secondary"
         className={`circle-button  d-flex align-items-center  ${className} ${styles.btn_with_left_icon}`}
-        {...props}
         ref={ref}
+        {...props}
       >
         {children}
         <div className={styles.label}>{label}</div>
