@@ -1,4 +1,4 @@
-<!-- # PlayGround
+# PlayGround
 
 Playground browser application.
 
@@ -203,6 +203,6 @@ or
 npm run add-block b servo -- -c control
 ```
 
-Once the files are generated, add the new block in `toolbox.ts` -->
+Once the files are generated, add the new block in `toolbox.ts` 
 
-Checking
+
