@@ -16,6 +16,7 @@ const CircleButton: FC<Props> = forwardRef<HTMLButtonElement, Props>(
         className={`circle-button  d-flex align-items-center  ${className} ${styles.btn_with_left_icon}`}
         ref={ref}
         {...props}
+        as="button"
       >
         {children}
         <div className={styles.label}>{label}</div>
