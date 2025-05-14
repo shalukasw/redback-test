@@ -15,10 +15,8 @@ import img4 from 'Assets/Images/img4.png';
 import img4Placeholder from 'Assets/Images/img4placeholder.png';
 import img5 from 'Assets/Images/img5.png';
 import img5Placeholder from 'Assets/Images/img5placeholder.png';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import LoginGameError from './LoginGameError';
-
+import { useDrag, useDrop } from 'react-dnd';
 const ItemTypes = {
   IMAGE: 'image',
 };
@@ -259,130 +257,116 @@ const LoginGame: React.FC = () => {
         handleClose={handleCloseErrorModal}
       />
       <Container fluid className="h-100 text-center">
-        <DndProvider backend={HTML5Backend}>
-          <Row className="align-items-center pt-md-4">
-            <Col md={{ span: 7 }} sm={{ span: 6 }}>
-              <div className="container">
-                {isCompleted == false ? (
-                  <>
-                    {/* Row 1 */}
-                    <div className="row mb-3">
-                      <div className="col d-flex justify-content-start">
-                        <DraggableImage
-                          id={row1Img[0].id}
-                          src={row1Img[0].src}
-                        />
+        {/* <DndProvider backend={HTML5Backend}> */}
+        <Row className="align-items-center pt-md-4">
+          <Col md={{ span: 7 }} sm={{ span: 6 }}>
+            <div className="container">
+              {isCompleted == false ? (
+                <>
+                  {/* Row 1 */}
+                  <div className="row mb-3">
+                    <div className="col d-flex justify-content-start">
+                      <DraggableImage id={row1Img[0].id} src={row1Img[0].src} />
+                    </div>
+                    <div className="col d-flex justify-content-end">
+                      <DraggableImage id={row1Img[1].id} src={row1Img[1].src} />
+                    </div>
+                  </div>
+                  {/* Row 2 */}
+                  <div className="row mb-3">
+                    <div className="col d-flex justify-content-center">
+                      <DraggableImage id={row2Img.id} src={row2Img.src} />
+                    </div>
+                  </div>
+                  {/* Row 3 */}
+                  <div className="row mb-3">
+                    <div className="col d-flex justify-content-start">
+                      <DraggableImage id={row3Img[0].id} src={row3Img[0].src} />
+                    </div>
+                    <div className="col d-flex justify-content-end">
+                      <DraggableImage id={row3Img[1].id} src={row3Img[1].src} />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="row">
+                    <div className="col d-flex justify-content-center flex-column">
+                      <h5 className="fw-semibold text-wrap mx-auto pb-3">
+                        Looks like you are all ready to get started.
+                      </h5>
+                      <h5 className="fw-semibold text-wrap mx-auto pb-3">
+                        Click on Go Play when you are ready!
+                      </h5>
+                    </div>
+                  </div>
+                  <div className="row mb-3">
+                    {unmatchedImg.map((img) => (
+                      <div
+                        key={img.id}
+                        className="col d-flex justify-content-center"
+                      >
+                        <DraggableImage id={img.id} src={img.src} />
                       </div>
-                      <div className="col d-flex justify-content-end">
-                        <DraggableImage
-                          id={row1Img[1].id}
-                          src={row1Img[1].src}
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </Col>
+          <Col md={{ span: 5 }} sm={{ span: 6 }}>
+            <div className={styles.formContainer}>
+              <div
+                className={`d-flex shadow-lg border justify-content-center ${styles.form}`}
+              >
+                <div className="container">
+                  {/* Randomised drop zone */}
+                  {Object.entries(dropZoneData).map(([zoneId, data], index) => (
+                    <div key={zoneId} className="row mb-3">
+                      <div
+                        className={`col d-flex ${
+                          index % 2 === 0
+                            ? 'justify-content-start'
+                            : 'justify-content-end'
+                        }`}
+                      >
+                        <DropZone
+                          id={zoneId}
+                          defaultSrc={data.placeholder}
+                          acceptedItem={droppedItems[zoneId]}
+                          onDrop={handleDrop}
                         />
                       </div>
                     </div>
-                    {/* Row 2 */}
-                    <div className="row mb-3">
-                      <div className="col d-flex justify-content-center">
-                        <DraggableImage id={row2Img.id} src={row2Img.src} />
-                      </div>
-                    </div>
-                    {/* Row 3 */}
-                    <div className="row mb-3">
-                      <div className="col d-flex justify-content-start">
-                        <DraggableImage
-                          id={row3Img[0].id}
-                          src={row3Img[0].src}
-                        />
-                      </div>
-                      <div className="col d-flex justify-content-end">
-                        <DraggableImage
-                          id={row3Img[1].id}
-                          src={row3Img[1].src}
-                        />
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="row">
-                      <div className="col d-flex justify-content-center flex-column">
-                        <h5 className="fw-semibold text-wrap mx-auto pb-3">
-                          Looks like you are all ready to get started.
-                        </h5>
-                        <h5 className="fw-semibold text-wrap mx-auto pb-3">
-                          Click on Go Play when you are ready!
-                        </h5>
-                      </div>
-                    </div>
-                    <div className="row mb-3">
-                      {unmatchedImg.map((img) => (
-                        <div
-                          key={img.id}
-                          className="col d-flex justify-content-center"
+                  ))}
+                  <div className="row mb-3">
+                    <div className="col d-flex justify-content-center">
+                      {isCompleted ? (
+                        <Button
+                          type="submit"
+                          className="btn mt-2"
+                          size="lg"
+                          variant="primary"
+                          onClick={goToPlay}
                         >
-                          <DraggableImage id={img.id} src={img.src} />
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </Col>
-            <Col md={{ span: 5 }} sm={{ span: 6 }}>
-              <div className={styles.formContainer}>
-                <div
-                  className={`d-flex shadow-lg border justify-content-center ${styles.form}`}
-                >
-                  <div className="container">
-                    {/* Randomised drop zone */}
-                    {Object.entries(dropZoneData).map(
-                      ([zoneId, data], index) => (
-                        <div key={zoneId} className="row mb-3">
-                          <div
-                            className={`col d-flex ${
-                              index % 2 === 0
-                                ? 'justify-content-start'
-                                : 'justify-content-end'
-                            }`}
-                          >
-                            <DropZone
-                              id={zoneId}
-                              defaultSrc={data.placeholder}
-                              acceptedItem={droppedItems[zoneId]}
-                              onDrop={handleDrop}
-                            />
-                          </div>
-                        </div>
-                      ),
-                    )}
-                    <div className="row mb-3">
-                      <div className="col d-flex justify-content-center">
-                        {isCompleted ? (
-                          <Button
-                            type="submit"
-                            className="btn mt-2"
-                            size="lg"
-                            variant="primary"
-                            onClick={goToPlay}
-                          >
-                            Go Play
-                          </Button>
-                        ) : (
-                          <img
-                            src={logo}
-                            width="175px"
-                            height="48px"
-                            alt="logo"
-                          />
-                        )}
-                      </div>
+                          Go Play
+                        </Button>
+                      ) : (
+                        <img
+                          src={logo}
+                          width="175px"
+                          height="48px"
+                          alt="logo"
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
-            </Col>
-          </Row>
-        </DndProvider>
+            </div>
+          </Col>
+        </Row>
+        {/* </DndProvider> */}
       </Container>
     </section>
   );
