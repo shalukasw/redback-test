@@ -21,6 +21,7 @@ import uranus from 'Assets/Images/uranus.jpg';
 import neptune from 'Assets/Images/neptune.jpg';
 import { Environment } from '@react-three/drei';
 import { useNavigate } from 'react-router-dom';
+import PlanetMatchGameError from './PlanetMatchGameError';
 
 // Planet Data
 interface Planet {
@@ -264,7 +265,12 @@ export default function PlanetMatchGame() {
   const [hovered, setHovered] = useState<string | null>(null);
   const navigate = useNavigate();
   const [showOverlay, setShowOverlay] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
+  const handleCloseErrorModal = () => {
+    setShowErrorModal(false);
+    setShowOverlay(false);
+  };
   // Handle drop logic
   const handleDrop = (label: string, planet: string): void => {
     if (label === planet) {
@@ -273,7 +279,7 @@ export default function PlanetMatchGame() {
         return next;
       });
     } else {
-      alert(` ${label} does not belong to ${planet}`);
+      setShowErrorModal(true);
     }
   };
   const goToPlayground = () => navigate('/join-playground');
@@ -285,80 +291,68 @@ export default function PlanetMatchGame() {
   }, [allMatched]);
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        height: '100vh',
-        position: 'relative',
-        background: '#000',
-      }}
-    >
-      {allMatched && showOverlay && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'rgba(0,0,0,0.8)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            color: '#fff',
-            fontSize: 48,
-            zIndex: 10,
-          }}
-        >
-          <div>All planets matched! 🎉</div>
-          {/* Close button */}
-          <button
-            onClick={() => setShowOverlay(false)}
-            style={{
-              marginTop: '20px',
-              padding: '8px 16px',
-              fontSize: '16px',
-              cursor: 'pointer',
-            }}
-          >
-            Close
-          </button>
-        </div>
-      )}
-
-      {/* Sidebar UI */}
+    <>
       <div
         style={{
-          width: '100%',
-          padding: '10px',
-          color: '#fff',
-          background: 'transparent',
           display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-around',
-          alignItems: 'center',
-          position: 'absolute',
-          top: 10,
-          zIndex: 9,
+          height: '100vh',
+          position: 'relative',
+          background: '#000',
         }}
       >
-        <button
-          className="btn mt-2"
-          onClick={() => {
-            setPlaced({});
-            setShowOverlay(false);
-          }}
+        {allMatched && showOverlay && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'rgba(0,0,0,0.8)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              color: '#fff',
+              fontSize: 48,
+              zIndex: 10,
+            }}
+          >
+            <div>All planets matched! 🎉</div>
+            {/* Close button */}
+            <button
+              onClick={() => setShowOverlay(false)}
+              style={{
+                marginTop: '20px',
+                padding: '8px 16px',
+                fontSize: '16px',
+                cursor: 'pointer',
+              }}
+            >
+              Close
+            </button>
+          </div>
+        )}
+
+        {/* Sidebar UI */}
+        <div
           style={{
-            marginBottom: '10px',
-            padding: '8px',
-            background: 'rgba(225, 128, 0)',
+            width: '100%',
+            padding: '10px',
             color: '#fff',
+            background: 'transparent',
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            position: 'absolute',
+            top: 10,
+            zIndex: 9,
           }}
         >
-          Reset Game
-        </button>
-        {allMatched && (
           <button
             className="btn mt-2"
-            onClick={goToPlayground}
+            onClick={() => {
+              setPlaced({});
+              setShowOverlay(false);
+            }}
             style={{
               marginBottom: '10px',
               padding: '8px',
@@ -366,80 +360,102 @@ export default function PlanetMatchGame() {
               color: '#fff',
             }}
           >
-            Go to Playground
+            Reset Game
           </button>
-        )}
-        <div>{planets.filter((p) => !placed[p.name]).length} left</div>
-        {planets.map((p) =>
-          !placed[p.name] ? (
-            <DraggableLabel key={p.name} name={p.name} />
-          ) : null,
-        )}
-      </div>
-      {/* 3D Canvas */}
-      <Canvas
-        style={{ flex: 1 }}
-        camera={{ position: [0, 150, 300], fov: 30 }}
-        dpr={Math.min(window.devicePixelRatio, 1.5)}
-        gl={{ toneMappingExposure: 1.5 }}
-      >
-        <color attach="background" args={['#000']} />
-        <Stars
-          radius={300}
-          depth={60}
-          count={3000}
-          factor={15}
-          saturation={0.2}
-          fade={false}
-        />
-
-        <ambientLight intensity={0.5} />
-        <hemisphereLight args={[0xffffff, 0x080820, 0.6]} />
-
-        {/* Key (sunlight) */}
-        <directionalLight position={[0, 50, 100]} intensity={0.2} castShadow />
-        <directionalLight position={[0, 50, -100]} intensity={0.2} />
-        <directionalLight position={[0, -50, 100]} intensity={0.2} />
-        <directionalLight position={[0, -50, -100]} intensity={0.2} />
-
-        {/* Fill (soft shadow lift) */}
-        <directionalLight position={[0, 20, 200]} intensity={0.2} />
-        <directionalLight position={[0, -20, 200]} intensity={0.2} />
-        <directionalLight position={[0, 20, -200]} intensity={0.2} />
-        <directionalLight position={[0, -20, -200]} intensity={0.2} />
-
-        {/* Rim (backlight) */}
-        <directionalLight position={[0, 100, -200]} intensity={0.2} />
-        <directionalLight position={[0, -100, 200]} intensity={0.2} />
-        <directionalLight position={[0, -100, -200]} intensity={0.2} />
-        <directionalLight position={[0, 100, 200]} intensity={0.2} />
-        <Environment preset="sunset" background={false} />
-
-        <Sun />
-        <OrbitControls maxDistance={300} minDistance={50} />
-        {/* Orbits */}
-        {planets.map((p) => (
-          <OrbitRing
-            key={p.name}
-            radius={p.orbitRadius}
-            highlight={hovered === p.name}
+          {allMatched && (
+            <button
+              className="btn mt-2"
+              onClick={goToPlayground}
+              style={{
+                marginBottom: '10px',
+                padding: '8px',
+                background: 'rgba(225, 128, 0)',
+                color: '#fff',
+              }}
+            >
+              Go to Playground
+            </button>
+          )}
+          <div>{planets.filter((p) => !placed[p.name]).length} left</div>
+          {planets.map((p) =>
+            !placed[p.name] ? (
+              <DraggableLabel key={p.name} name={p.name} />
+            ) : null,
+          )}
+        </div>
+        {/* 3D Canvas */}
+        <Canvas
+          style={{ flex: 1 }}
+          camera={{ position: [0, 150, 300], fov: 30 }}
+          dpr={Math.min(window.devicePixelRatio, 1.5)}
+          gl={{ toneMappingExposure: 1.5 }}
+        >
+          <color attach="background" args={['#000']} />
+          <Stars
+            radius={300}
+            depth={60}
+            count={3000}
+            factor={15}
+            saturation={0.2}
+            fade={false}
           />
-        ))}
-        {/* Planets */}
-        {planets.map((p) =>
-          allMatched ? (
-            <OrbitingPlanet key={p.name} data={p} />
-          ) : (
-            <PlanetWithDropZone
+
+          <ambientLight intensity={0.5} />
+          <hemisphereLight args={[0xffffff, 0x080820, 0.6]} />
+
+          {/* Key (sunlight) */}
+          <directionalLight
+            position={[0, 50, 100]}
+            intensity={0.2}
+            castShadow
+          />
+          <directionalLight position={[0, 50, -100]} intensity={0.2} />
+          <directionalLight position={[0, -50, 100]} intensity={0.2} />
+          <directionalLight position={[0, -50, -100]} intensity={0.2} />
+
+          {/* Fill (soft shadow lift) */}
+          <directionalLight position={[0, 20, 200]} intensity={0.2} />
+          <directionalLight position={[0, -20, 200]} intensity={0.2} />
+          <directionalLight position={[0, 20, -200]} intensity={0.2} />
+          <directionalLight position={[0, -20, -200]} intensity={0.2} />
+
+          {/* Rim (backlight) */}
+          <directionalLight position={[0, 100, -200]} intensity={0.2} />
+          <directionalLight position={[0, -100, 200]} intensity={0.2} />
+          <directionalLight position={[0, -100, -200]} intensity={0.2} />
+          <directionalLight position={[0, 100, 200]} intensity={0.2} />
+          <Environment preset="sunset" background={false} />
+
+          <Sun />
+          <OrbitControls maxDistance={300} minDistance={50} />
+          {/* Orbits */}
+          {planets.map((p) => (
+            <OrbitRing
               key={p.name}
-              data={p}
-              onHover={setHovered}
-              onDropped={handleDrop}
-              isMatched={!!placed[p.name]}
+              radius={p.orbitRadius}
+              highlight={hovered === p.name}
             />
-          ),
-        )}
-      </Canvas>
-    </div>
+          ))}
+          {/* Planets */}
+          {planets.map((p) =>
+            allMatched ? (
+              <OrbitingPlanet key={p.name} data={p} />
+            ) : (
+              <PlanetWithDropZone
+                key={p.name}
+                data={p}
+                onHover={setHovered}
+                onDropped={handleDrop}
+                isMatched={!!placed[p.name]}
+              />
+            ),
+          )}
+        </Canvas>
+      </div>
+      <PlanetMatchGameError
+        show={showErrorModal}
+        handleClose={handleCloseErrorModal}
+      />
+    </>
   );
 }
