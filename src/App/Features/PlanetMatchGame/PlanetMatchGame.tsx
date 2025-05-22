@@ -20,6 +20,7 @@ import saturn from 'Assets/Images/saturn.jpg';
 import uranus from 'Assets/Images/uranus.jpg';
 import neptune from 'Assets/Images/neptune.jpg';
 import { Environment } from '@react-three/drei';
+import { useNavigate } from 'react-router-dom';
 
 // Planet Data
 interface Planet {
@@ -33,28 +34,28 @@ const planets: Planet[] = [
   { name: 'Mercury', orbitRadius: 20, radius: 2, texture: mercury, angle: 0 },
   {
     name: 'Venus',
-    orbitRadius: 35,
+    orbitRadius: 30,
     radius: 4.5,
     texture: venus,
     angle: Math.PI * 0.2,
   },
   {
     name: 'Earth',
-    orbitRadius: 35,
+    orbitRadius: 40,
     radius: 5,
     texture: earth,
     angle: Math.PI * 0.6,
   },
   {
     name: 'Mars',
-    orbitRadius: 45,
+    orbitRadius: 50,
     radius: 3.5,
     texture: mars,
     angle: Math.PI * 1.1,
   },
   {
     name: 'Jupiter',
-    orbitRadius: 60,
+    orbitRadius: 65,
     radius: 11,
     texture: jupiter,
     angle: Math.PI * 1.7,
@@ -68,14 +69,14 @@ const planets: Planet[] = [
   },
   {
     name: 'Uranus',
-    orbitRadius: 100,
+    orbitRadius: 90,
     radius: 4,
     texture: uranus,
     angle: Math.PI * 2.8,
   },
   {
     name: 'Neptune',
-    orbitRadius: 120,
+    orbitRadius: 100,
     radius: 4,
     texture: neptune,
     angle: Math.PI * 3.5,
@@ -261,7 +262,7 @@ function OrbitingPlanet({ data }: { data: Planet }) {
 export default function PlanetMatchGame() {
   const [placed, setPlaced] = useState<Record<string, boolean>>({});
   const [hovered, setHovered] = useState<string | null>(null);
-
+  const navigate = useNavigate();
   const [showOverlay, setShowOverlay] = useState(false);
 
   // Handle drop logic
@@ -275,6 +276,7 @@ export default function PlanetMatchGame() {
       alert(` ${label} does not belong to ${planet}`);
     }
   };
+  const goToPlayground = () => navigate('/join-playground');
 
   const allMatched = Object.keys(placed).length === planets.length;
 
@@ -353,6 +355,20 @@ export default function PlanetMatchGame() {
         >
           Reset Game
         </button>
+        {allMatched && (
+          <button
+            className="btn mt-2"
+            onClick={goToPlayground}
+            style={{
+              marginBottom: '10px',
+              padding: '8px',
+              background: 'rgba(225, 128, 0)',
+              color: '#fff',
+            }}
+          >
+            Go to Playground
+          </button>
+        )}
         <div>{planets.filter((p) => !placed[p.name]).length} left</div>
         {planets.map((p) =>
           !placed[p.name] ? (
