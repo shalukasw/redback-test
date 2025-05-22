@@ -65,6 +65,9 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 | react-router-dom           | Page transition (navigation)       |
 | axios                      | HTTP library to make network calls |
 | aws-rum-web                | telemetry                          |
+| @react-three               | 3D rendering                       |
+| react-dnd                  | drag and drop functionality        |
+
 
 ## Directory structure
 
@@ -101,6 +104,8 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
    |  |     |  └── ViewModels
    |  |     ├── Repository
    |  |     └── Usecase
+   |  |  └── LoginGame # Drag and drop login game
+   |  |  └── PlanetMatchGame # 3D solar system - planet match game
    |  ├── Lib # Bugbox blockly extensions
    |  |  └── Blockly
    |  |     ├── blocks # Contains block UI customization and code generation
