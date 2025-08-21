@@ -1,3 +1,40 @@
-/* Empty for now — styling comes in Step 2 */
 .task-sidebar {
+  width: 280px;
+  height: 100vh;
+  background-color: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+  padding: 1rem;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+  overflow-y: auto;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.task-sidebar h2 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #343a40;
+}
+
+.task-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.task-sidebar li {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.task-sidebar li:hover {
+  background: #e9ecef;
 }
